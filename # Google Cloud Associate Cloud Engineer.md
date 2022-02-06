@@ -196,4 +196,4 @@ The command `gloud init` allows us to authorize gcloud to use your credentials a
 
 The command `gcloud config list` allows us to see the current configuration. 
 
-![gcloud config list](images\gcloud_config_list.png)
+![gcloud config list](gc_img\gcloud_config_list.png)
