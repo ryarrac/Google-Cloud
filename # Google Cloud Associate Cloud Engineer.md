@@ -197,3 +197,54 @@ The command `gloud init` allows us to authorize gcloud to use your credentials a
 The command `gcloud config list` allows us to see the current configuration. 
 
 ![gcloud config list](gc_img\gcloud_config_list.png)
+
+For exam purpose you need to remember 
+- Region
+- Zone
+- Account
+- Project
+
+
+To specify the current account 
+```sh
+gcloud config list account
+```
+
+However, the same type of command cannot be used to list region or zone.
+
+```sh
+gcloud config list region
+[ERROR]
+```
+
+If we directly put the word region or zone, it will actually search only in the [CORE] part.  To check in any part other than the core, we need to mention it. 
+
+```sh
+gcloud config list compute/region
+```
+
+
+# Playing with Compute instances from gcloud
+
+Create an instance
+```
+gcloud compute instances create <instance name>
+```
+You may need to provide the zone name and it will create an instance with default configurations.
+
+Delete an instance
+```
+gcloud compute instances delete <instance name>
+```
+To list all machine types
+```
+gcloud compute machine-types list
+```
+
+
+# To create an instance
+
+```sh
+gcloud compute instances create instance-cli --project=true-oarlock-336905 --zone=us-central1-a --machine-type=e2-medium --network-interface=network-tier=PREMIUM,subnet=default --metadata=purpose=Testing,impornace=none --maintenance-policy=MIGRATE --service-account=40277976817-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --tags=http-server --create-disk=auto-delete=yes,boot=yes,device-name=instance-cli,image=projects/debian-cloud/global/images/debian-10-buster-v20220118,mode=rw,size=10,type=projects/true-oarlock-336905/zones/us-central1-a/diskTypes/pd-balanced --create-disk=description=for\ testing\ from\ cli\ envisonment,device-name=my-custom-disk,mode=rw,name=my-custom-disk,size=10,type=projects/true-oarlock-336905/zones/us-central1-a/diskTypes/pd-balanced --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=any
+```
+
