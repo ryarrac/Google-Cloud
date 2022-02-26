@@ -242,9 +242,235 @@ gcloud compute machine-types list
 ```
 
 
+# Create disks
+```
+gcloud compute disks create disk-1 \
+--project=true-oarlock-336905 \
+--type=pd-balanced \
+--labels=type=blank \
+--size=10GB \
+--zone=us-central1-a 
+```
+
+```
+gcloud compute resource-policies create snapshot-schedule default-schedule-1 \
+--project=true-oarlock-336905 \
+--region=us-central1 \
+--max-retention-days=14 \
+--on-source-disk-delete=keep-auto-snapshots \
+--daily-schedule \
+--start-time=10:00
+```
+
+
+```
+gcloud compute disks add-resource-policies disk-1 \
+--project=true-oarlock-336905 \
+--zone=us-central1-a \
+--policies=projects/true-oarlock-336905/regions/us-central1/resourcePolicies
+```
+
+
+
 # To create an instance
 
 ```sh
-gcloud compute instances create instance-cli --project=true-oarlock-336905 --zone=us-central1-a --machine-type=e2-medium --network-interface=network-tier=PREMIUM,subnet=default --metadata=purpose=Testing,impornace=none --maintenance-policy=MIGRATE --service-account=40277976817-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --tags=http-server --create-disk=auto-delete=yes,boot=yes,device-name=instance-cli,image=projects/debian-cloud/global/images/debian-10-buster-v20220118,mode=rw,size=10,type=projects/true-oarlock-336905/zones/us-central1-a/diskTypes/pd-balanced --create-disk=description=for\ testing\ from\ cli\ envisonment,device-name=my-custom-disk,mode=rw,name=my-custom-disk,size=10,type=projects/true-oarlock-336905/zones/us-central1-a/diskTypes/pd-balanced --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=any
+gcloud compute instances create instance-cli \
+--project=true-oarlock-336905 \
+--zone=us-central1-a \
+--machine-type=e2-medium \
+--network-interface=network-tier=PREMIUM,subnet=default \
+--metadata=purpose=Testing,impornace=none \
+--maintenance-policy=MIGRATE \
+--service-account=40277976817-compute@developer.gserviceaccount.com \
+--scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append \
+--tags=http-server \
+--create-disk=auto-delete=yes,boot=yes,device-name=instance-cli,image=projects/debian-cloud/global/images/debian-10-buster-v20220118,mode=rw,size=10,type=projects/true-oarlock-336905/zones/us-central1-a/diskTypes/pd-balanced \
+--create-disk=description=for\ testing\ from\ cli\ envisonment,device-name=my-custom-disk,mode=rw,name=my-custom-disk,size=10,type=projects/true-oarlock-336905/zones/us-central1-a/diskTypes/pd-balanced \
+--no-shielded-secure-boot \
+--shielded-vtpm \
+--shielded-integrity-monitoring \
+--reservation-affinity=any
 ```
+
+
+### Create an instance template
+
+```
+gcloud compute instance-templates create basictemplate \
+--machine-type=e2-medium \
+--image-family=debian-10 \
+--image-project=debian-cloud \
+--boot-disk-size=250GB
+```
+### Describe the basictemplate
+
+```
+gcloud compute instance-templates describe basisctemplate
+```
+### Output:
+<pre>
+creationTimestamp: '2022-02-26T06:40:12.721-08:00'
+description: ''
+id: '3062910450899846435'
+kind: compute#instanceTemplate
+name: basictemplate
+properties:
+  canIpForward: false
+  disks:
+  - autoDelete: true
+    boot: true
+    deviceName: persistent-disk-0
+    index: 0
+    initializeParams:
+      diskSizeGb: '250'
+      sourceImage: https://compute.googleapis.com/compute/v1/projects/debian-cloud/global/images/family/debian-10
+    kind: compute#attachedDisk
+    mode: READ_WRITE
+    type: PERSISTENT
+  machineType: e2-medium
+  metadata:
+    fingerprint: vFfMMvrOwH4=
+    kind: compute#metadata
+  networkInterfaces:
+  - accessConfigs:
+    - kind: compute#accessConfig
+      name: external-nat
+      networkTier: PREMIUM
+      type: ONE_TO_ONE_NAT
+    kind: compute#networkInterface
+    name: nic0
+    network: https://www.googleapis.com/compute/v1/projects/true-oarlock-336905/global/networks/default
+  scheduling:
+    automaticRestart: true
+    onHostMaintenance: MIGRATE
+    preemptible: false
+  serviceAccounts:
+  - email: default
+    scopes:
+    - https://www.googleapis.com/auth/devstorage.read_only
+    - https://www.googleapis.com/auth/logging.write
+    - https://www.googleapis.com/auth/monitoring.write
+    - https://www.googleapis.com/auth/pubsub
+    - https://www.googleapis.com/auth/service.management.readonly
+    - https://www.googleapis.com/auth/servicecontrol
+    - https://www.googleapis.com/auth/trace.append
+selfLink: https://www.googleapis.com/compute/v1/projects/true-oarlock-336905/global/instanceTemplates/basictemplate
+</pre>
+
+### Create instance from Template
+
+```pre
+ gcloud compute instances create vm-from-basictemplate \
+ --source-instance-template basictemplate
+ ```
+
+
+
+### Make an instance template from an existing instance
+
+```
+gcloud compute instance-templates create template2 \
+--source-instance=<instance-name> \
+--source-instance-zone=<zone-name> \
+```
+
+### List instance templates
+
+```
+gcloud compute instance-templates list
+```
+
+### Describe configurations of a instance template 
+
+```
+gcloud compute instance-templates describe <template name>
+```
+<pre>
+creationTimestamp: '2022-02-26T05:35:57.313-08:00'
+description: ''
+id: '7470371616216027730'
+kind: compute#instanceTemplate
+name: copied-template
+properties:
+  canIpForward: false
+  confidentialInstanceConfig:
+    enableConfidentialCompute: false
+  description: ''
+  disks:
+  - autoDelete: true
+    boot: true
+    deviceName: instance-cli
+    diskSizeGb: '10'
+    guestOsFeatures:
+    - type: UEFI_COMPATIBLE
+    - type: VIRTIO_SCSI_MULTIQUEUE
+    index: 0
+    initializeParams:
+      diskType: pd-balanced
+      sourceImage: projects/debian-cloud/global/images/debian-10-buster-v20220118
+    interface: SCSI
+    kind: compute#attachedDisk
+    licenses:
+    - https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-10-buster
+    mode: READ_WRITE
+    type: PERSISTENT
+  - autoDelete: false
+    boot: false
+    deviceName: my-custom-disk
+    diskSizeGb: '10'
+    index: 1
+    initializeParams:
+      description: for testing from cli envisonment
+      diskType: pd-balanced
+    interface: SCSI
+    kind: compute#attachedDisk
+    mode: READ_WRITE
+    type: PERSISTENT
+  machineType: e2-medium
+  metadata:
+    fingerprint: DclvoOqGO-U=
+    items:
+    - key: name
+      value: Sample VM
+    kind: compute#metadata
+  networkInterfaces:
+  - accessConfigs:
+    - kind: compute#accessConfig
+      name: External NAT
+      natIP: 146.148.41.161
+      networkTier: PREMIUM
+      type: ONE_TO_ONE_NAT
+    fingerprint: 3tTmYGjCU3s=
+    kind: compute#networkInterface
+    name: nic0
+    network: https://www.googleapis.com/compute/v1/projects/true-oarlock-336905/global/networks/default
+    stackType: IPV4_ONLY
+    subnetwork: https://www.googleapis.com/compute/v1/projects/true-oarlock-336905/regions/us-central1/subnetworks/default
+  reservationAffinity:
+    consumeReservationType: ANY_RESERVATION
+  scheduling:
+    automaticRestart: true
+    onHostMaintenance: MIGRATE
+    preemptible: false
+  serviceAccounts:
+  - email: 40277976817-compute@developer.gserviceaccount.com
+    scopes:
+    - https://www.googleapis.com/auth/devstorage.read_only
+    - https://www.googleapis.com/auth/logging.write
+    - https://www.googleapis.com/auth/monitoring.write
+    - https://www.googleapis.com/auth/servicecontrol
+    - https://www.googleapis.com/auth/service.management.readonly
+    - https://www.googleapis.com/auth/trace.append
+  shieldedInstanceConfig:
+    enableIntegrityMonitoring: true
+    enableSecureBoot: false
+    enableVtpm: true
+  tags:
+    fingerprint: 6smc4R4d39I=
+    items:
+    - http-server
+    - https-server
+selfLink: https://www.googleapis.com/compute/v1/projects/true-oarlock-336905/global/instanceTemplates/copied-template
+</pre>
 
